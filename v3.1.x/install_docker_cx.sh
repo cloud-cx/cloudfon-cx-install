@@ -74,30 +74,27 @@ install_docker_on_ubuntu(){
     echo ""
     echo "====>Try to update system"
     echo ""
-    for pkg in docker.io docker-doc docker-compose containerd runc; do sudo apt-get remove -y $pkg; done
+    apt-get remove -y  docker docker-engine docker.io containerd runc || true
 	echo "====>remove docker end"
     apt update -y
+    dpkg --configure -a || true
+    DEBIAN_FRONTEND=noninteractive apt upgrade -y || true
     echo ""
     echo "====>System updated"
     echo ""
     echo "====>Try to install the firewalld"
     echo ""
-    DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl gnupg
+    DEBIAN_FRONTEND=noninteractive apt-get install -y apt-transport-https ca-certificates curl gnupg gnupg-agent software-properties-common firewalld lsb-release
     echo ""
     echo "====>Firewalld installed"
     echo ""
-    install -m 0755 -d /etc/apt/keyrings
-	-fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-	chmod a+r /etc/apt/keyrings/docker.gpg
-	echo \
-	"deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-	"$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-	sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | apt-key add -
+    add-apt-repository -y "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
     apt-get update -y
     echo ""
     echo "====>Try to install the docker"
     echo ""
-    apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+    apt-get install docker-ce docker-compose-plugin -y
     systemctl enable docker
     systemctl stop docker
     echo ""
