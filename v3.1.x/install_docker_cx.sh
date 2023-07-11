@@ -74,7 +74,7 @@ install_docker_on_ubuntu(){
     echo ""
     echo "====>Try to update system"
     echo ""
-    for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove -y $pkg; done
+    for pkg in docker.io docker-doc docker-compose containerd runc; do sudo apt-get remove -y $pkg; done
 	echo "====>remove docker end"
     apt update -y
     echo ""
