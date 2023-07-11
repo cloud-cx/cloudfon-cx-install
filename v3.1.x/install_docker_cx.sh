@@ -32,9 +32,10 @@ set_firewall(){
     firewall-cmd --zone=trusted --remove-interface=docker0 --permanent
     firewall-cmd --reload
     firewall-cmd --permanent --add-service=ssh
-    firewall-cmd --permanent --new-service=cloudfon-cc || true
-    firewall-cmd --permanent --service=cloudfon-cc --add-port=9001/tcp --set-description="cloudfon-cc"
-    firewall-cmd --permanent --add-service=cloudfon-cc
+    firewall-cmd --permanent --zone=public --new-service=cloudfon-cx || true
+    firewall-cmd --permanent --zone=public --add-service=cloudfon-cx
+	firewall-cmd --zone=public --add-port=9001/tcp --permanent
+    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=9001/tcp --set-description="cloudfon-cx"
     firewall-cmd --reload
     systemctl restart firewalld
     echo ""
@@ -73,27 +74,30 @@ install_docker_on_ubuntu(){
     echo ""
     echo "====>Try to update system"
     echo ""
-    apt-get remove -y  docker docker-engine docker.io containerd runc || true
+    for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove -y $pkg; done
 	echo "====>remove docker end"
     apt update -y
-    dpkg --configure -a || true
-    DEBIAN_FRONTEND=noninteractive apt upgrade -y || true
     echo ""
     echo "====>System updated"
     echo ""
     echo "====>Try to install the firewalld"
     echo ""
-    DEBIAN_FRONTEND=noninteractive apt-get install -y apt-transport-https ca-certificates curl gnupg gnupg-agent software-properties-common firewalld lsb-release
+    DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl gnupg
     echo ""
     echo "====>Firewalld installed"
     echo ""
-    curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | apt-key add -
-    add-apt-repository -y "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+    install -m 0755 -d /etc/apt/keyrings
+	-fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+	chmod a+r /etc/apt/keyrings/docker.gpg
+	echo \
+	"deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+	"$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+	sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     apt-get update -y
     echo ""
     echo "====>Try to install the docker"
     echo ""
-    apt-get install docker-ce docker-compose-plugin -y
+    apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
     systemctl enable docker
     systemctl stop docker
     echo ""
