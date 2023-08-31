@@ -49,7 +49,7 @@ services:
     user: kong
     container_name: cx-kong
     environment: 
-      KONG_DATABASE: off
+      KONG_DATABASE: "off"
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ERROR_LOG: /dev/stderr
       KONG_PROXY_LISTEN: "0.0.0.0:9001 ssl, 0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
