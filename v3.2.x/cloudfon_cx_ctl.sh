@@ -74,7 +74,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 10
-    restart: on-failure:5
+    restart: always
     read_only: true
     volumes:
       - kong_prefix_vol:/var/run/kong
