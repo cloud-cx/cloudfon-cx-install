@@ -59,7 +59,7 @@ services:
       KONG_SSL_CERT_KEY: "/opt/kong/cert_key.pem"
       KONG_PREFIX: /var/run/kong
       KONG_DECLARATIVE_CONFIG: "/opt/kong/kong.yaml"
-	    KONG_UPSTREAM_KEEPALIVE_IDLE_TIMEOUT: 600
+      KONG_UPSTREAM_KEEPALIVE_IDLE_TIMEOUT: 600
     networks:
       - cx-network
     depends_on:
