@@ -167,9 +167,15 @@ events {
 }
 
 http {
-    include 'nginx-kong.conf';
-    include '/usr/local/openresty/nginx/conf/mime.types';
-
+     include 'nginx-kong.conf';
+     include '/usr/local/openresty/nginx/conf/mime.types';
+     
+     gzip on;
+     gzip_min_length 1k;
+     gzip_comp_level 6;
+     gzip_types text/plain application/javascript application/x-javascript text/css application/xml text/javascript application/x-httpd-php;
+     gzip_vary on;
+     
      server {
              charset UTF-8;
              server_name web;
