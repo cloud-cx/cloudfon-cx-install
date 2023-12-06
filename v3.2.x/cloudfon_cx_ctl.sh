@@ -46,7 +46,6 @@ services:
   # kong gateway
   cx-kong:
     image: kong:3.3.0-ubuntu
-    privileged: true
     user: kong
     container_name: cx-kong
     environment: 
@@ -56,11 +55,13 @@ services:
       KONG_PROXY_LISTEN: "0.0.0.0:9001 ssl, 0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
-      KONG_SSL_CERT: "/opt/kong/cc_api/cert.pem"
-      KONG_SSL_CERT_KEY: "/opt/kong/cc_api/cert_key.pem"
+      KONG_SSL_CERT: "/opt/kong/cert.pem"
+      KONG_SSL_CERT_KEY: "/opt/kong/cert_key.pem"
       KONG_PREFIX: /var/run/kong
-      KONG_DECLARATIVE_CONFIG: "/opt/kong/cc_api/kong.yaml"
+      KONG_DECLARATIVE_CONFIG: "/opt/kong/kong.yaml"
       KONG_UPSTREAM_KEEPALIVE_IDLE_TIMEOUT: 600
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001 reuseport backlog=16384, 0.0.0.0:8444 http2 ssl reuseport backlog=16384"
+      KONG_PLUGINS: prometheus
     networks:
       - cx-network
     depends_on:
@@ -70,6 +71,7 @@ services:
       - "9001:9001"
       - "443:443"
       - "9006:9006"
+      - "8001:8001"
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 10s
@@ -80,8 +82,7 @@ services:
     volumes:
       - kong_prefix_vol:/var/run/kong
       - kong_tmp_vol:/tmp
-      - ./:/opt/kong
-      - ./kong-nginx.conf:/var/run/kong/nginx.conf
+      - ./cc_api:/opt/kong
     security_opt:
       - no-new-privileges
   # mysql database
@@ -141,80 +142,6 @@ FEOF
     echo ""
 }
 
-
-export_nginx_conf() {
-    echo ""
-    echo -e "\t => export nginx_conf file 'kong-nginx.conf' <="
-    echo ""
-
-    cat << FEOF > kong-nginx.conf
-pid pids/nginx.pid;
-error_log /dev/stderr notice;
-
-# injected nginx_main_* directives
-daemon off;
-user kong kong;
-worker_processes auto;
-worker_rlimit_nofile 16384;
-
-lmdb_environment_path dbless.lmdb;
-lmdb_map_size         128m;
-
-events {
-    # injected nginx_events_* directives
-    multi_accept on;
-    worker_connections 16384;
-}
-
-http {
-     include 'nginx-kong.conf';
-     include '/usr/local/openresty/nginx/conf/mime.types';
-     
-     gzip on;
-     gzip_min_length 1k;
-     gzip_comp_level 6;
-     gzip_types text/plain application/javascript application/x-javascript text/css application/xml text/javascript application/x-httpd-php;
-     gzip_vary on;
-     
-     server {
-             charset UTF-8;
-             server_name web;
-             listen 0.0.0.0:9000 reuseport backlog=16384;
-             
-             error_page 400 404 405 408 411 412 413 414 417 494 /kong_error_handler;
-             error_page 500 502 503 504                     /kong_error_handler;
-             access_log /dev/stdout;
-              
-
-             location /chat {
-                     root /opt/kong/static/;
-                     index index.htm index.html;
-             }
-
-	     location /chatjs {
-		     root /opt/kong/static/;
-		     index index.htm index.html;
-	     }
-
-	      location /chatpreview {
-       		     root /opt/kong/static/;
-		     index index.htm index.html;
-	      }
-
-             location / {
-                     root /opt/kong/static/files;
-                     index index.htm index.html;
-             }
-     }
-
-}
-FEOF
-    echo ""
-    echo -e "\t => configure nginx_conf file done <="
-    echo ""
-    echo ""
-}
-
 create() {
     echo ""
     echo "==> try to create cloudfon-cc service <=="
@@ -237,9 +164,7 @@ create() {
 
     done
 
-	export_configure $image
-	
-	export_nginx_conf
+    export_configure $image
     # run cloudfon-cc service
     docker compose up -d
 
