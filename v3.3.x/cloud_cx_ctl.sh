@@ -545,7 +545,7 @@ http {
              server_name web;
              listen 0.0.0.0:9000 reuseport backlog=16384;
 			 
-	     add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' https: data: blob:; base-uri 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+	     add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' https: data: blob:; base-uri 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'";
 			 
              add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
              add_header X-Frame-Options "ALLOW-FROM *";
