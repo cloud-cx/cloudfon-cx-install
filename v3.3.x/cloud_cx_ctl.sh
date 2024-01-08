@@ -625,7 +625,7 @@ export_mariadb_conf() {
 socket = /run/mysqld/mysqld.sock
 #connect_timeout =60
 wait_timeout =300000
-max_connections =350
+max_connections =500
 max_allowed_packet =128M
 max_connect_errors =350
 
