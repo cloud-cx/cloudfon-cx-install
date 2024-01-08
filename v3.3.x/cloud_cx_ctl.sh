@@ -10,8 +10,8 @@ fi
 export_configure_all() {
     echo ""
     echo -e "\t => export configure file 'docker-compose.yml' <="
-    echo "mariadb user: $2"
-	if [ $2 != 'root' ];then
+	if [ $2 = 'root' ];then
+	echo "mariadb user: root"
 	cat << FEOF > docker-compose.yml
 version: '3.9'
 services:
@@ -53,7 +53,7 @@ services:
       KONG_DATABASE: "off"
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_PROXY_LISTEN: "0.0.0.0:9001 ssl, 0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
+      KONG_PROXY_LISTEN: "0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_SSL_CERT: "/opt/kong/cc_api/cert.pem"
@@ -67,7 +67,6 @@ services:
       cx-api:
         condition: service_healthy
     ports:
-      - "9001:9001"
       - "443:443"
       - "9006:9006"
     healthcheck:
@@ -95,8 +94,6 @@ services:
       - ./my.cnf:/etc/mysql/my.cnf:ro
     environment:
       MYSQL_DATABASE: \${MARIADB_DATABASE}
-      MARIADB_USER: \${MARIADB_USER}
-      MARIADB_PASSWORD: \${MARIADB_PASSWORD}
       MYSQL_ROOT_PASSWORD: \${MARIADB_PASSWORD}
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost","-p\${MARIADB_PASSWORD}"]
@@ -184,7 +181,7 @@ services:
       KONG_DATABASE: "off"
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_PROXY_LISTEN: "0.0.0.0:9001 ssl, 0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
+      KONG_PROXY_LISTEN: "0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_SSL_CERT: "/opt/kong/cc_api/cert.pem"
@@ -198,7 +195,6 @@ services:
       cx-api:
         condition: service_healthy
     ports:
-      - "9001:9001"
       - "443:443"
       - "9006:9006"
     healthcheck:
@@ -226,6 +222,8 @@ services:
       - ./my.cnf:/etc/mysql/my.cnf:ro
     environment:
       MYSQL_DATABASE: \${MARIADB_DATABASE}
+      MARIADB_USER: \${MARIADB_USER}
+      MARIADB_PASSWORD: \${MARIADB_PASSWORD}
       MYSQL_ROOT_PASSWORD: \${MARIADB_PASSWORD}
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost","-p\${MARIADB_PASSWORD}"]
@@ -271,6 +269,7 @@ volumes:
      type: tmpfs
      device: tmpfs
 FEOF
+
 	fi	
     
     echo ""
@@ -320,7 +319,7 @@ services:
       KONG_DATABASE: "off"
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_PROXY_LISTEN: "0.0.0.0:9001 ssl, 0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
+      KONG_PROXY_LISTEN: "0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_SSL_CERT: "/opt/kong/cc_api/cert.pem"
@@ -334,7 +333,6 @@ services:
       cx-api:
         condition: service_healthy
     ports:
-      - "9001:9001"
       - "443:443"
       - "9006:9006"
     healthcheck:
@@ -376,7 +374,8 @@ export_configure_mid() {
     echo ""
     echo -e "\t => export configure file 'docker-compose.yml' <="
     echo ""
-	if [ $2 != 'root' ];then
+	if [ $2 = 'root' ];then
+	echo "mariadb user: root"
     cat << FEOF > docker-compose.yml
 version: '3.9'
 services:
@@ -498,6 +497,7 @@ volumes:
      type: tmpfs
      device: tmpfs
 FEOF
+
 	fi
     echo ""
     echo -e "\t => configure file done <="
@@ -545,8 +545,7 @@ http {
              server_name web;
              listen 0.0.0.0:9000 reuseport backlog=16384;
 			 
-	     add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' https: data: blob:; base-uri 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'";
-			 
+			 add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' https: data: blob: wss:; base-uri 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'";			 
              add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
              add_header X-Frame-Options "ALLOW-FROM *";
              add_header X-Content-Type-Options "nosniff";
@@ -603,6 +602,8 @@ MARIADB_DATABASE=$5
 REDIS_URL=$6
 REDIS_PASSWORD=$7
 REDIS_PORT=$8
+MIDDLEWARE_HOST=$9
+JVM_MEM=${10}
 
 FEOF
     echo ""
@@ -634,9 +635,9 @@ max_heap_table_size =64M
 table_cache =512M
 
 #innodb
-innodb_buffer_pool_size =1G
+innodb_buffer_pool_size =${1}M
 #innodb_log_file_size =128M
-innodb_log_buffer_size =32M
+innodb_log_buffer_size =${1}M
 innodb_file_per_table=1
 
 thread_cache_size=8
@@ -668,75 +669,43 @@ export_redis_conf() {
     echo -e "\t => export export_redis_conf file '.env' <="
     echo ""
     cat << FEOF >  redis.conf
-
-# Redis服务器配置 
- 
-# 绑定IP地址
-#解除本地限制 注释bind 127.0.0.1  
 #bind 127.0.0.1  
  
-# 服务器端口号  
 port 6379 
  
-#配置密码，不要可以删掉
 requirepass $1
   
  
-#这个配置不要会和docker -d 命令 冲突
-# 服务器运行模式，Redis以守护进程方式运行,默认为no，改为yes意为以守护进程方式启动，可后台运行，除非kill进程，改为yes会使配置文件方式启动redis失败，如果后面redis启动失败，就将这个注释掉
 daemonize no
  
-#当Redis以守护进程方式运行时，Redis默认会把pid写入/var/run/redis.pid文件，可以通过pidfile指定(自定义)
-#pidfile /data/dockerData/redis/run/redis6379.pid  
- 
-#默认为no，redis持久化，可以改为yes
 appendonly yes
  
- 
-#当客户端闲置多长时间后关闭连接，如果指定为0，表示关闭该功能
 timeout 60
-# 服务器系统默认配置参数影响 Redis 的应用
 maxclients 10000
 tcp-keepalive 300
  
-#指定在多长时间内，有多少次更新操作，就将数据同步到数据文件，可以多个条件配合（分别表示900秒（15分钟）内有1个更改，300秒（5分钟）内有10个更改以及60秒内有10000个更改）
 save 900 1
 save 300 10
 save 60 10000
  
-# 按需求调整 Redis 线程数
 tcp-backlog 511
  
- 
-# 设置数据库数量，这里设置为16个数据库  
 databases 16
  
- 
-# 启用 AOF, AOF常规配置
 appendonly yes
 appendfsync everysec
 no-appendfsync-on-rewrite no
 auto-aof-rewrite-percentage 100
 auto-aof-rewrite-min-size 64mb
- 
- 
-# 慢查询阈值
+
 slowlog-log-slower-than 10000
 slowlog-max-len 128
- 
- 
-# 是否记录系统日志，默认为yes  
+
 syslog-enabled yes  
- 
-#指定日志记录级别，Redis总共支持四个级别：debug、verbose、notice、warning，默认为verbose
+
 loglevel notice
   
-# 日志输出文件，默认为stdout，也可以指定文件路径  
 logfile stdout
- 
-# 日志文件
-#logfile /var/log/redis/redis-server.log
- 
 
 FEOF
     echo ""
@@ -752,11 +721,9 @@ create() {
     # remove command firstly
     shift
 	
-	# 解析命令行参数
 	options=$(getopt -o i:t:m:r:w:u:b:s:d:ph --long image:,install_type:,mariadb_password:,redis_password:,middleware_ip:,mariadb_user:,mariadb_port:,redis_port:,mariadb_database: -- "$@")
 	eval set -- "$options"
 	 
-	# 提取选项和参数
 	while true; do
 	  case $1 in 
 		-i | --image) shift; image=$1 ; shift ;;
@@ -790,7 +757,7 @@ create() {
 		return
 	fi
 	 
-	# 检查变量
+	
 	if [ -z "$install_type" ]; then
 		install_type='all'
 	fi
@@ -802,25 +769,49 @@ create() {
 		fi
 	fi	
 	
+	FILE=".env"
+	
 	if [ $install_type = 'api' ];then
 		if [ -z "$mariadb_password" ]; then
-		  echo "need mariadb_password parameters"
-		  exit -1
+			if [ -f "$FILE"  ];then
+				echo -e "\t => mariadb_password already initialize  <="
+				mariadb_password=$(sed '/MARIADB_PASSWORD/!d;s/.*=//'  .env)	
+			fi
+		
+			if [ -z "$mariadb_password" ]; then
+				echo "need mariadb_password parameters"
+				exit -1
+			fi	
 		fi
 		
 		if [ -z "$redis_password" ]; then
-		  echo "need redis_password parameters"
-		  exit -1
+			if [ -f "$FILE"  ];then
+				echo -e "\t => redis_password already initialize  <="
+				redis_password=$(sed '/REDIS_PASSWORD/!d;s/.*=//'  .env)
+			fi
+			
+			if [ -z "$redis_password" ]; then
+				echo "need redis_password parameters"
+				exit -1
+			fi	
 		fi
 		
 		if [ -z "$middleware_ip" ]; then
+			if [ -f "$FILE"  ];then
+				echo -e "\t => middleware_ip already initialize  <="
+				middleware_ip=$(sed '/MIDDLEWARE_HOST/!d;s/.*=//'  .env)
+			fi
+			
+			if [ -z "$middleware_ip" ]; then
+				echo "need middleware_ip parameters"
+				exit -1
+			fi	
 		  echo "need middleware_ip parameters"
 		  exit -1
 		fi
 	fi	
 
 	if [ $install_type != 'api' ];then
-		FILE=".env"
 		if [ -f "$FILE"  ];then
 			echo -e "\t => mariadb_password already initialize  <="
 			mariadb_password=$(sed '/MARIADB_PASSWORD/!d;s/.*=//'  .env)	
@@ -870,6 +861,8 @@ create() {
     echo "==> try to create cloudfon-cc service <=="
     echo ""
     #mariadb_password=$(date +%s%N | md5sum | cut -c 1-13)
+	totalMem=$(free -m|awk '/Mem/{print $(NF-5)-0}')
+	
 
 	case $install_type in
 		api)
@@ -881,8 +874,8 @@ create() {
 			#REDIS_URL=$6
 			#REDIS_PASSWORD=$7
 			#REDIS_PORT=$8
-			
-			export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $redis_port 
+			jvm_mem=$(awk -v x=${totalMem} -v y=0.8 'BEGIN{printf "%.0f",x*y}')
+			export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $redis_port $middleware_ip $jvm_mem
 			
 			echo "export_configure_api"
 			export_configure_api $image
@@ -892,23 +885,29 @@ create() {
 		mid)
 			echo "export_configure_mid"
 			export_configure_mid $image $mariadb_user
-			export_mariadb_conf
-			middleware_ip='127.0.0.1'
+			configMem=$(awk -v x=${totalMem} -v y=0.8 'BEGIN{printf "%.0f",x*y}')
+			echo "totalMem:${totalMem}  configMem:${configMem}"
+			export_mariadb_conf $configMem
 			
-            export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $redis_port 
+			middleware_ip='127.0.0.1'			
+            export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $middleware_ip $redis_port 
 			export_redis_conf $redis_password
 			;;
 		*)
 			echo "export_configure_all"
 			export_configure_all $image $mariadb_user
-			export_mariadb_conf
+			configMem=$(awk -v x=${totalMem} -v y=0.4 'BEGIN{printf "%.0f",x*y}')
+			jvm_mem=$(awk -v x=${totalMem} -v y=0.4 'BEGIN{printf "%.0f",x*y}')
+			echo "totalMem:${totalMem}  configMem:${configMem} jvm_mem:${jvm_mem}"
+			export_mariadb_conf $configMem
 			
 			mariadb_url='cx-mariadb'
 			redis_url='cx-redis'
 			mariadb_port=3306
 			redis_port=6379
-			
-            export_env $mariadb_url $mariadb_user $mariadb_password $mariadb_port $mariadb_database $redis_url $redis_password $redis_port 
+			middleware_ip='127.0.0.1'
+
+            export_env $mariadb_url $mariadb_user $mariadb_password $mariadb_port $mariadb_database $redis_url $redis_password $redis_port $middleware_ip $jvm_mem
 			export_redis_conf $redis_password
 			export_nginx_conf
 			;;
