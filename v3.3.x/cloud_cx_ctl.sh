@@ -874,7 +874,7 @@ create() {
 			#REDIS_URL=$6
 			#REDIS_PASSWORD=$7
 			#REDIS_PORT=$8
-			jvm_mem=$(awk -v x=${totalMem} -v y=0.8 'BEGIN{printf "%.0f",x*y}')
+			jvm_mem=$(awk -v x=${totalMem} -v y=0.6 'BEGIN{printf "%.0f",x*y}')
 			export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $redis_port $middleware_ip $jvm_mem
 			
 			echo "export_configure_api"
@@ -885,7 +885,7 @@ create() {
 		mid)
 			echo "export_configure_mid"
 			export_configure_mid $image $mariadb_user
-			configMem=$(awk -v x=${totalMem} -v y=0.8 'BEGIN{printf "%.0f",x*y}')
+			configMem=$(awk -v x=${totalMem} -v y=0.4 'BEGIN{printf "%.0f",x*y}')
 			echo "totalMem:${totalMem}  configMem:${configMem}"
 			export_mariadb_conf $configMem
 			
