@@ -890,7 +890,7 @@ create() {
 			export_mariadb_conf $configMem
 			
 			middleware_ip='127.0.0.1'			
-            export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $middleware_ip $redis_port 
+            export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $redis_port $middleware_ip
 			export_redis_conf $redis_password
 			;;
 		*)
