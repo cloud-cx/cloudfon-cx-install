@@ -53,7 +53,7 @@ services:
       KONG_DATABASE: "off"
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_PROXY_LISTEN: "0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
+      KONG_PROXY_LISTEN: "0.0.0.0:443 ssl, 0.0.0.0:9006 ssl, 0.0.0.0:9001 ssl"
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_SSL_CERT: "/opt/kong/cc_api/cert.pem"
@@ -68,6 +68,7 @@ services:
         condition: service_healthy
     ports:
       - "443:443"
+      - "9001:9001"
       - "9006:9006"
     healthcheck:
       test: ["CMD", "kong", "health"]
@@ -181,7 +182,7 @@ services:
       KONG_DATABASE: "off"
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_PROXY_LISTEN: "0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
+      KONG_PROXY_LISTEN: "0.0.0.0:443 ssl, 0.0.0.0:9006 ssl, 0.0.0.0:9001 ssl"
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_SSL_CERT: "/opt/kong/cc_api/cert.pem"
@@ -196,6 +197,7 @@ services:
         condition: service_healthy
     ports:
       - "443:443"
+      - "9001:9001"
       - "9006:9006"
     healthcheck:
       test: ["CMD", "kong", "health"]
@@ -319,7 +321,7 @@ services:
       KONG_DATABASE: "off"
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_PROXY_LISTEN: "0.0.0.0:443 ssl, 0.0.0.0:9006 ssl"
+      KONG_PROXY_LISTEN: "0.0.0.0:443 ssl, 0.0.0.0:9006 ssl, 0.0.0.0:9001 ssl"
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_SSL_CERT: "/opt/kong/cc_api/cert.pem"
@@ -334,6 +336,7 @@ services:
         condition: service_healthy
     ports:
       - "443:443"
+      - "9001:9001"
       - "9006:9006"
     healthcheck:
       test: ["CMD", "kong", "health"]
