@@ -808,8 +808,7 @@ create() {
 			if [ -z "$middleware_ip" ]; then
 				echo "need middleware_ip parameters"
 				exit -1
-			fi	
-		  exit -1
+			fi
 		fi
 	fi	
 
