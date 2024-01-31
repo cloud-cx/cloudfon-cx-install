@@ -809,7 +809,6 @@ create() {
 				echo "need middleware_ip parameters"
 				exit -1
 			fi	
-		  echo "need middleware_ip parameters"
 		  exit -1
 		fi
 	fi	
