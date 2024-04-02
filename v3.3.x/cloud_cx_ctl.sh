@@ -642,6 +642,7 @@ innodb_buffer_pool_size =${1}M
 #innodb_log_file_size =128M
 innodb_log_buffer_size =${1}M
 innodb_file_per_table=1
+innodb_strict_mode=OFF
 
 thread_cache_size=8
 query_cache_size=128M
