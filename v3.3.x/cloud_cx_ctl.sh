@@ -30,7 +30,7 @@ services:
       - "9002:8000"
     restart: always
     healthcheck:
-      test: [ "CMD", "curl" ,"--fail","-k", "https://localhost:8000/time"]
+      test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]
       timeout: 20s
       retries: 10
     depends_on:
@@ -159,7 +159,7 @@ services:
       - "9002:8000"
     restart: always
     healthcheck:
-      test: [ "CMD", "curl" ,"--fail","-k", "https://localhost:8000/time"]
+      test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]
       timeout: 20s
       retries: 10
     depends_on:
@@ -303,7 +303,7 @@ services:
       - "9002:8000"
     restart: always
     healthcheck:
-      test: [ "CMD", "curl" ,"--fail","-k", "https://localhost:8000/time"]
+      test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]
       timeout: 20s
       retries: 10
     networks:
@@ -548,7 +548,7 @@ http {
              server_name web;
              listen 0.0.0.0:9000 reuseport backlog=16384;
 			 
-			 add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' https: data: blob: wss:; base-uri 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'";			 
+	     add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' https: data: blob: wss:; base-uri 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'";			 
              add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
              add_header X-Frame-Options "ALLOW-FROM *";
              add_header X-Content-Type-Options "nosniff";
