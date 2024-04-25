@@ -561,22 +561,22 @@ http {
 
 
              location /chat {
-                     root /opt/kong/static/;
+                     root /opt/kong/webapp/static/;
                      index index.htm index.html;
              }
 
 	     location /chatjs {
-		     root /opt/kong/static/;
+		     root /opt/kong/webapp/static/;
 		     index index.htm index.html;
 	     }
 
 	      location /chatpreview {
-       		     root /opt/kong/static/;
+       		     root /opt/kong/webapp/static/;
 		     index index.htm index.html;
 	      }
 
              location / {
-                     root /opt/kong/static/files;
+                     root /opt/kong/webapp/static/files;
                      index index.htm index.html;
              }
      }
