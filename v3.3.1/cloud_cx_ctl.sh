@@ -41,7 +41,7 @@ services:
     networks:
       - cx-network
     build:
-      context: ./cx_api
+      context: ./cx-api
       dockerfile: ./Dockerfile
   # kong gateway
   cx-kong:
@@ -170,7 +170,7 @@ services:
     networks:
       - cx-network
     build:
-      context: ./cx_api
+      context: ./cx-api
       dockerfile: ./Dockerfile
   # kong gateway
   cx-kong:
@@ -309,7 +309,7 @@ services:
     networks:
       - cx-network
     build:
-      context: ./cx_api
+      context: ./cx-api
       dockerfile: ./Dockerfile
   # kong gateway
   cx-kong:
