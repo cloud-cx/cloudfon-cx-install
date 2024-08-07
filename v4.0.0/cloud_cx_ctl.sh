@@ -677,8 +677,10 @@ export_env() {
     HOST_IP=""
 
     for nic in $physicalNic; do
-        ip=$(ip addr show dev $nic | grep "inet " | awk '{print $2}' | cut -d '/' -f 1)
-        HOST_IP="$HOST_IP,$ip"
+        ips=$(ip addr show dev $nic | grep "inet " | awk '{print $2}' | cut -d '/' -f 1)
+        for ip in $ips;do
+          HOST_IP="$HOST_IP,$ip"
+        done
     done
 
     HOST_IP=$(echo "$HOST_IP" | cut -c 2-)
