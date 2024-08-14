@@ -29,17 +29,12 @@ set_firewall(){
     echo ""
     echo "====>Configure cloudfon-cc's default firewall rules"
     echo ""
-    firewall-cmd --zone=trusted --remove-interface=docker0 --permanent
+    # firewall-cmd --zone=trusted --remove-interface=docker0 --permanent
     firewall-cmd --reload
-    firewall-cmd --permanent --add-service=ssh
-    firewall-cmd --permanent --zone=public --new-service=cloudfon-cx || true
-    firewall-cmd --permanent --zone=public --add-service=cloudfon-cx
-	  firewall-cmd --zone=public --add-port=9001/tcp --permanent
-	  firewall-cmd --zone=public --add-port=9006/tcp --permanent
-	  firewall-cmd --zone=public --add-port=443/tcp --permanent
-    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=9001/tcp --set-description="cloudfon-cx"
-    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=9006/tcp --set-description="cloudfon-cx"
-    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=443/tcp --set-description="cloudfon-cx"
+    # firewall-cmd --permanent --add-service=ssh
+    firewall-cmd --permanent --new-service=cloudfon-cc || true
+    firewall-cmd --permanent --service=cloudfon-cc --add-port=9001/tcp --set-description="cloudfon-cc"
+    firewall-cmd --permanent --add-service=cloudfon-cc
     firewall-cmd --reload
     systemctl restart firewalld
     echo ""
@@ -79,7 +74,7 @@ install_docker_on_ubuntu(){
     echo "====>Try to update system"
     echo ""
     apt-get remove -y  docker docker-engine docker.io containerd runc || true
-	echo "====>remove docker end"
+	  echo "====>remove docker end"
     apt update -y
     dpkg --configure -a || true
     DEBIAN_FRONTEND=noninteractive apt upgrade -y || true
@@ -92,8 +87,8 @@ install_docker_on_ubuntu(){
     echo ""
     echo "====>Firewalld installed"
     echo ""
-    curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | apt-key add -
-    add-apt-repository -y "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+    add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
     apt-get update -y
     echo ""
     echo "====>Try to install the docker"
