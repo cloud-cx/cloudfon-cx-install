@@ -29,12 +29,17 @@ set_firewall(){
     echo ""
     echo "====>Configure cloudfon-cc's default firewall rules"
     echo ""
-    # firewall-cmd --zone=trusted --remove-interface=docker0 --permanent
+    firewall-cmd --zone=trusted --remove-interface=docker0 --permanent
     firewall-cmd --reload
-    # firewall-cmd --permanent --add-service=ssh
-    firewall-cmd --permanent --new-service=cloudfon-cc || true
-    firewall-cmd --permanent --service=cloudfon-cc --add-port=9001/tcp --set-description="cloudfon-cc"
-    firewall-cmd --permanent --add-service=cloudfon-cc
+    firewall-cmd --permanent --add-service=ssh
+    firewall-cmd --permanent --zone=public --new-service=cloudfon-cx || true
+    firewall-cmd --permanent --zone=public --add-service=cloudfon-cx
+	  firewall-cmd --zone=public --add-port=9001/tcp --permanent
+	  firewall-cmd --zone=public --add-port=9006/tcp --permanent
+	  firewall-cmd --zone=public --add-port=443/tcp --permanent
+    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=9001/tcp --set-description="cloudfon-cx"
+    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=9006/tcp --set-description="cloudfon-cx"
+    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=443/tcp --set-description="cloudfon-cx"
     firewall-cmd --reload
     systemctl restart firewalld
     echo ""
