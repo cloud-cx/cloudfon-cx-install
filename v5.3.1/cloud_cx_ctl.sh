@@ -28,6 +28,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "9002:8000"
+      - "8008:8008"
     restart: always
     healthcheck:
       test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]
@@ -177,6 +178,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "9002:8000"
+      - "8008:8008"
     restart: always
     healthcheck:
       test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]
@@ -341,6 +343,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "9002:8000"
+      - "8008:8008"
     restart: always
     healthcheck:
       test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]

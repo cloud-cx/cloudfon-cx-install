@@ -28,6 +28,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "9002:8000"
+      - "8008:8008"
     restart: always
     healthcheck:
       test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]
@@ -153,7 +154,7 @@ services:
       ELASTIC_PASSWORD: \${ES_PASSWORD}
       xpack.security.enabled: true
       discovery.type: single-node
-      ES_JAVA_OPTS: -Xms1024m -Xmx1024m
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
     volumes:
       - ./es/data:/usr/share/elasticsearch/data
       - /etc/timezone:/etc/timezone:ro
@@ -198,6 +199,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "9002:8000"
+      - "8008:8008"
     restart: always
     healthcheck:
       test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]
@@ -325,7 +327,7 @@ services:
       ELASTIC_PASSWORD: \${ES_PASSWORD}
       xpack.security.enabled: true
       discovery.type: single-node
-      ES_JAVA_OPTS: -Xms1024m -Xmx1024m
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
     volumes:
       - ./es/data:/usr/share/elasticsearch/data
       - /etc/timezone:/etc/timezone:ro
@@ -383,6 +385,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "9002:8000"
+      - "8008:8008"
     restart: always
     healthcheck:
       test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]
@@ -533,7 +536,7 @@ services:
       ELASTIC_PASSWORD: \${ES_PASSWORD}
       xpack.security.enabled: true
       discovery.type: single-node
-      ES_JAVA_OPTS: -Xms1024m -Xmx1024m
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
     volumes:
       - ./es/data:/usr/share/elasticsearch/data
       - /etc/timezone:/etc/timezone:ro
@@ -637,7 +640,7 @@ services:
       ELASTIC_PASSWORD: \${ES_PASSWORD}
       xpack.security.enabled: true
       discovery.type: single-node
-      ES_JAVA_OPTS: -Xms1024m -Xmx1024m
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
     volumes:
       - ./es/data:/usr/share/elasticsearch/data
       - /etc/timezone:/etc/timezone:ro
@@ -1119,7 +1122,7 @@ create() {
 			export_mariadb_conf $configMem
 			
 			middleware_ip='127.0.0.1'			
-			export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $redis_port $middleware_ip $chromadb_port $middleware_ip $es_port $es_password $middleware_ip
+			export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $redis_port $middleware_ip $chromadb_port $middleware_ip $configMem $es_port $es_password $middleware_ip
 			export_redis_conf $redis_password
 			;;
 		*)
@@ -1136,6 +1139,7 @@ create() {
 			mariadb_port=3306
 			redis_port=6379
 			chromadb_port=8000
+			es_port=9200
 			middleware_ip='127.0.0.1'
       es_url='cx-elasticsearch'
       echo "$mariadb_url $mariadb_user $mariadb_password $mariadb_port $mariadb_database $redis_url $redis_password $redis_port $chromadb_url $chromadb_port $middleware_ip  $jvm_mem $es_port $es_password $es_url"
