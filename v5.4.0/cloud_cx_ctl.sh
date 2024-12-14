@@ -19,6 +19,7 @@ services:
   cx-api:
     image: $1
     container_name: cx-api
+    privileged: true
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
@@ -122,7 +123,7 @@ services:
       - cx-network
     healthcheck:
       test: ["CMD", "redis-cli","ping"]
-      interval: 1s
+      interval: 10s
       timeout: 3s
       retries: 5
   # chromadb 
@@ -140,7 +141,7 @@ services:
       - cx-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 5s
+      interval: 10s
       timeout: 10s
       retries: 10
   # elasticsearch
@@ -164,9 +165,27 @@ services:
       - cx-network
     healthcheck:
       test: ["CMD", "curl", "-f", "-u", "elastic:\${ES_PASSWORD}", "http://localhost:9200"]
-      interval: 5s
+      interval: 10s
       timeout: 10s
       retries: 10
+  # nfs
+  cx-nfs:
+    image: gists/nfs-server:2.6.4
+    container_name: cx-nfs
+    privileged: true
+    ports:
+      - "52049:2049"
+    environment:
+      NFS_DIR: "/nfs_share"
+      NFS_DOMAIN: "*"
+      NFS_OPTION: "fsid=0,rw,sync,no_root_squash,all_squash,anonuid=0,anongid=0,no_subtree_check,insecure"
+    volumes:
+      - ./nfs:/nfs_share
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    networks:
+      - cx-network
 
 networks:
   cx-network:
@@ -190,6 +209,7 @@ services:
   cx-api:
     image: $1
     container_name: cx-api
+    privileged: true
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
@@ -340,6 +360,24 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+  # nfs
+  cx-nfs:
+    image: gists/nfs-server:2.6.4
+    container_name: cx-nfs
+    privileged: true
+    ports:
+      - "52049:2049"
+    environment:
+      NFS_DIR: "/nfs_share"
+      NFS_DOMAIN: "*"
+      NFS_OPTION: "fsid=0,rw,sync,no_root_squash,all_squash,anonuid=0,anongid=0,no_subtree_check,insecure"
+    volumes:
+      - ./nfs:/nfs_share
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    networks:
+      - cx-network
 
 networks:
   cx-network:
@@ -375,6 +413,7 @@ services:
   # callcenter api
   cx-api:
     image: $1
+    privileged: true
     container_name: cx-api
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -549,6 +588,24 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+  # nfs
+  cx-nfs:
+    image: gists/nfs-server:2.6.4
+    container_name: cx-nfs
+    privileged: true
+    ports:
+      - "52049:2049"
+    environment:
+      NFS_DIR: "/nfs_share"
+      NFS_DOMAIN: "*"
+      NFS_OPTION: "fsid=0,rw,sync,no_root_squash,all_squash,anonuid=0,anongid=0,no_subtree_check,insecure"
+    volumes:
+      - ./nfs:/nfs_share
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    networks:
+      - cx-network
 
 networks:
   cx-network:
@@ -653,6 +710,24 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+  # nfs
+  cx-nfs:
+    image: gists/nfs-server:2.6.4
+    container_name: cx-nfs
+    privileged: true
+    ports:
+      - "52049:2049"
+    environment:
+      NFS_DIR: "/nfs_share"
+      NFS_DOMAIN: "*"
+      NFS_OPTION: "fsid=0,rw,sync,no_root_squash,all_squash,anonuid=0,anongid=0,no_subtree_check,insecure"
+    volumes:
+      - ./nfs:/nfs_share
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    networks:
+      - cx-network
 
 networks:
   cx-network:
@@ -1112,6 +1187,7 @@ create() {
 			echo "export_configure_api"
 			export_configure_api $image $ai_agent_image
 			export_nginx_conf
+			mkdir -p nfs
 			;;
 
 		mid)
@@ -1124,6 +1200,11 @@ create() {
 			middleware_ip='127.0.0.1'			
 			export_env $middleware_ip $mariadb_user $mariadb_password $mariadb_port $mariadb_database $middleware_ip $redis_password $redis_port $middleware_ip $chromadb_port $middleware_ip $configMem $es_port $es_password $middleware_ip
 			export_redis_conf $redis_password
+
+			# chmod es data
+      mkdir -p es/data
+      chmod 777 -R es
+      mkdir -p nfs/fileSaved
 			;;
 		*)
 			echo "export_configure_all"
@@ -1147,11 +1228,13 @@ create() {
 			export_env $mariadb_url $mariadb_user $mariadb_password $mariadb_port $mariadb_database $redis_url $redis_password $redis_port $chromadb_url $chromadb_port $middleware_ip  $jvm_mem $es_port $es_password $es_url
 			export_redis_conf $redis_password
 			export_nginx_conf
+
+			# chmod es data
+      mkdir -p es/data
+      chmod 777 -R es
+      mkdir -p nfs/fileSaved
 			;;
 		esac
-    # chmod es data
-    mkdir -p es/data
-    chmod 777 -R es
 
     # run cloudfon-cc service
     docker compose up -d
