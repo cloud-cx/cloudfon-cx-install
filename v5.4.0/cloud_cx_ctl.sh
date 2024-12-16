@@ -1165,7 +1165,7 @@ create() {
 
     
     echo ""
-    echo "==> try to create cloudfon-cc service <=="
+    echo "==> try to create cloud-cx service <=="
     echo ""
     #mariadb_password=$(date +%s%N | md5sum | cut -c 1-13)
 	totalMem=$(free -m|awk '/Mem/{print $(NF-5)-0}')
@@ -1236,7 +1236,7 @@ create() {
 			;;
 		esac
 
-    # run cloudfon-cc service
+    # run cloud-cx service
     docker compose up -d
 
     echo ""
