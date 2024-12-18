@@ -908,7 +908,7 @@ table_cache =512M
 #innodb
 innodb_buffer_pool_size =${1}M
 #innodb_log_file_size =128M
-innodb_log_buffer_size =${1}M
+innodb_log_buffer_size =128M
 innodb_file_per_table=1
 innodb_strict_mode=OFF
 
@@ -1209,7 +1209,7 @@ create() {
 		*)
 			echo "export_configure_all"
 			export_configure_all $image $mariadb_user $ai_agent_image
-			configMem=$(awk -v x=${totalMem} -v y=0.4 'BEGIN{printf "%.0f",x*y}')
+			configMem=$(awk -v x=${totalMem} -v y=0.3 'BEGIN{printf "%.0f",x*y}')
 			jvm_mem=$(awk -v x=${totalMem} -v y=0.4 'BEGIN{printf "%.0f",x*y}')
 			echo "totalMem:${totalMem}  configMem:${configMem} jvm_mem:${jvm_mem}"
 			export_mariadb_conf $configMem
