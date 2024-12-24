@@ -857,7 +857,13 @@ export_env() {
     HOST_IP=$(echo "$HOST_IP" | cut -c 2-)
 
     echo "HOST_IP: $HOST_IP"
-
+    CX_CLUSTER_ENABLED=false
+    if [ -f ".env"  ];then
+      CX_CLUSTER_ENABLED=$(sed '/CX_CLUSTER_ENABLED/!d;s/.*=//'  .env)
+      if [ -z "${CX_CLUSTER_ENABLED}" ]; then
+        CX_CLUSTER_ENABLED=false
+      fi
+    fi
     cat << FEOF > .env
 MARIADB_URL=$1
 MARIADB_USER=$2
@@ -875,7 +881,7 @@ HOST_IP=${HOST_IP}
 ES_URL=${15}
 ES_PORT=${13}
 ES_PASSWORD=${14}
-
+CX_CLUSTER_ENABLED=${CX_CLUSTER_ENABLED}
 FEOF
     echo ""
     echo -e "\t => configure export_env file done <="
