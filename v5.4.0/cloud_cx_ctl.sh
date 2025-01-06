@@ -13,7 +13,6 @@ export_configure_all() {
 	if [ $2 = 'root' ];then
 	echo "mariadb user: root"
 	cat << FEOF > docker-compose.yml
-version: '3.9'
 services:
   # callcenter api
   cx-api:
@@ -39,6 +38,8 @@ services:
       cx-mariadb:
         condition: service_healthy
       cx-redis:
+        condition: service_healthy
+      cx-nfs:
         condition: service_healthy
     networks:
       - cx-network
@@ -186,6 +187,11 @@ services:
     restart: always
     networks:
       - cx-network
+    healthcheck:
+      test: ["CMD", "pgrep", "nfsd"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
 networks:
   cx-network:
@@ -203,7 +209,6 @@ volumes:
 FEOF
 	else
 	cat << FEOF > docker-compose.yml
-version: '3.9'
 services:
   # callcenter api
   cx-api:
@@ -229,6 +234,8 @@ services:
       cx-mariadb:
         condition: service_healthy
       cx-redis:
+        condition: service_healthy
+      cx-nfs:
         condition: service_healthy
     networks:
       - cx-network
@@ -378,6 +385,11 @@ services:
     restart: always
     networks:
       - cx-network
+    healthcheck:
+      test: ["CMD", "pgrep", "nfsd"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
 networks:
   cx-network:
@@ -408,7 +420,6 @@ export_configure_api() {
     echo ""
 
     cat << FEOF > docker-compose.yml
-version: '3.9'
 services:
   # callcenter api
   cx-api:
@@ -503,7 +514,6 @@ export_configure_mid() {
 	if [ $2 = 'root' ];then
 	echo "mariadb user: root"
     cat << FEOF > docker-compose.yml
-version: '3.9'
 services:
   # mysql database
   cx-mariadb:
@@ -606,6 +616,11 @@ services:
     restart: always
     networks:
       - cx-network
+    healthcheck:
+      test: ["CMD", "pgrep", "nfsd"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
 networks:
   cx-network:
@@ -623,7 +638,6 @@ volumes:
 FEOF
 	else
 cat << FEOF > docker-compose.yml
-version: '3.9'
 services:
   # mysql database
   cx-mariadb:
@@ -728,6 +742,11 @@ services:
     restart: always
     networks:
       - cx-network
+    healthcheck:
+      test: ["CMD", "pgrep", "nfsd"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
 
 networks:
   cx-network:
