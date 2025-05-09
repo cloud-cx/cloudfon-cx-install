@@ -35,7 +35,25 @@ services:
       timeout: 20s
       retries: 10
     depends_on:
+      cx-upgrade:
+        condition: service_completed_successfully
+    networks:
+      - cx-network
+  cx-upgrade:
+    image: $1
+    container_name: cx-upgrade
+    privileged: true
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
       cx-mariadb:
+        condition: service_healthy
+      cx-elasticsearch:
         condition: service_healthy
       cx-redis:
         condition: service_healthy
@@ -43,6 +61,9 @@ services:
         condition: service_healthy
     networks:
       - cx-network
+    working_dir: /data
+    command: >
+      /usr/local/sbin/upgrade
   # kong gateway
   cx-kong:
     image: kong:3.3.0-ubuntu
@@ -232,7 +253,25 @@ services:
       timeout: 20s
       retries: 10
     depends_on:
+      cx-upgrade:
+        condition: service_completed_successfully
+    networks:
+      - cx-network
+  cx-upgrade:
+    image: $1
+    container_name: cx-upgrade
+    privileged: true
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
       cx-mariadb:
+        condition: service_healthy
+      cx-elasticsearch:
         condition: service_healthy
       cx-redis:
         condition: service_healthy
@@ -240,6 +279,9 @@ services:
         condition: service_healthy
     networks:
       - cx-network
+    working_dir: /data
+    command: >
+      /usr/local/sbin/upgrade
   # kong gateway
   cx-kong:
     image: kong:3.3.0-ubuntu
@@ -437,6 +479,9 @@ services:
     ports:
       - "9002:8000"
       - "8008:8008"
+    depends_on:
+      cx-upgrade:
+        condition: service_completed_successfully
     restart: always
     healthcheck:
       test: [ "CMD", "curl" ,"--fail","-k", "http://localhost:8000/time"]
@@ -444,6 +489,31 @@ services:
       retries: 10
     networks:
       - cx-network
+  cx-upgrade:
+    image: $1
+    container_name: cx-upgrade
+    privileged: true
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      cx-mariadb:
+        condition: service_healthy
+      cx-elasticsearch:
+        condition: service_healthy
+      cx-redis:
+        condition: service_healthy
+      cx-nfs:
+        condition: service_healthy
+    networks:
+      - cx-network
+    working_dir: /data
+    command: >
+      /usr/local/sbin/upgrade
   # kong gateway
   cx-kong:
     image: kong:3.3.0-ubuntu
@@ -1255,8 +1325,8 @@ create() {
 		*)
 			echo "export_configure_all"
 			export_configure_all $image $mariadb_user $ai_agent_image
-			configMem=$(awk -v x=${totalMem} -v y=0.3 'BEGIN{printf "%.0f",x*y}')
-			jvm_mem=$(awk -v x=${totalMem} -v y=0.4 'BEGIN{printf "%.0f",x*y}')
+			configMem=$(awk -v x=${totalMem} -v y=0.2 'BEGIN{printf "%.0f",x*y}')
+			jvm_mem=$(awk -v x=${totalMem} -v y=0.3 'BEGIN{printf "%.0f",x*y}')
 			echo "totalMem:${totalMem}  configMem:${configMem} jvm_mem:${jvm_mem}"
 			export_mariadb_conf $configMem
 			
