@@ -500,15 +500,6 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on:
-      cx-mariadb:
-        condition: service_healthy
-      cx-elasticsearch:
-        condition: service_healthy
-      cx-redis:
-        condition: service_healthy
-      cx-nfs:
-        condition: service_healthy
     networks:
       - cx-network
     working_dir: /data
