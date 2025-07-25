@@ -878,7 +878,10 @@ FEOF
     echo ""
 }
 
-
+url_encode() {
+    local string="$1"
+    printf '%s' "$string" | jq -s -R -r @uri
+}
 
 export_env() {
     echo ""
@@ -910,11 +913,15 @@ export_env() {
         CX_CLUSTER_ENABLED=false
       fi
     fi
+    ENCODED_USER=$(url_encode "$2")
+    ENCODED_PASSWORD=$(url_encode "$3")
     cat << FEOF > .env
 ENV=dev
 MARIADB_URL=$1
 MARIADB_USER=$2
 MARIADB_PASSWORD=$3
+ENCODED_USER=${ENCODED_USER}
+ENCODED_PASSWORD=${ENCODED_PASSWORD}
 MARIADB_PORT=$4
 MARIADB_DATABASE=$5
 REDIS_URL=$6
