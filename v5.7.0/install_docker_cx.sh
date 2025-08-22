@@ -27,19 +27,19 @@ set_firewall(){
     systemctl enable firewalld
     systemctl start firewalld
     echo ""
-    echo "====>Configure cloud-cx's default firewall rules"
+    echo "====>Configure cloudfon-cc's default firewall rules"
     echo ""
     firewall-cmd --zone=trusted --remove-interface=docker0 --permanent
     firewall-cmd --reload
     firewall-cmd --permanent --add-service=ssh
-    firewall-cmd --permanent --zone=public --new-service=cloud-cx || true
-    firewall-cmd --permanent --zone=public --add-service=cloud-cx
+    firewall-cmd --permanent --zone=public --new-service=cloudfon-cx || true
+    firewall-cmd --permanent --zone=public --add-service=cloudfon-cx
 	  firewall-cmd --zone=public --add-port=9001/tcp --permanent
 	  firewall-cmd --zone=public --add-port=9006/tcp --permanent
 	  firewall-cmd --zone=public --add-port=443/tcp --permanent
-    firewall-cmd --permanent --zone=public --service=cloud-cx --add-port=9001/tcp --set-description="cloud-cx"
-    firewall-cmd --permanent --zone=public --service=cloud-cx --add-port=9006/tcp --set-description="cloud-cx"
-    firewall-cmd --permanent --zone=public --service=cloud-cx --add-port=443/tcp --set-description="cloud-cx"
+    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=9001/tcp --set-description="cloudfon-cx"
+    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=9006/tcp --set-description="cloudfon-cx"
+    firewall-cmd --permanent --zone=public --service=cloudfon-cx --add-port=443/tcp --set-description="cloudfon-cx"
     firewall-cmd --reload
     systemctl restart firewalld
     echo ""
@@ -53,7 +53,7 @@ install_docker_on_centos(){
     echo "====>Starting to install on centos"
     echo ""
     yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
-    yum install -y yum-utils device-mapper-persistent-data lvm2 firewalld
+    yum install -y yum-utils device-mapper-persistent-data lvm2 firewalld jq
     yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     yum makecache fast
     echo ""
@@ -88,7 +88,7 @@ install_docker_on_ubuntu(){
     echo ""
     echo "====>Try to install the firewalld"
     echo ""
-    DEBIAN_FRONTEND=noninteractive apt-get install -y apt-transport-https ca-certificates curl gnupg gnupg-agent software-properties-common firewalld lsb-release
+    DEBIAN_FRONTEND=noninteractive apt-get install -y apt-transport-https ca-certificates curl gnupg gnupg-agent software-properties-common firewalld lsb-release jq
     echo ""
     echo "====>Firewalld installed"
     echo ""
@@ -126,7 +126,7 @@ install_docker_on_debian(){
     echo ""
     echo "====>Try to install the firewalld"
     echo ""
-    apt-get install apt-transport-https ca-certificates curl gnupg lsb-release firewalld -y
+    apt-get install apt-transport-https ca-certificates curl gnupg lsb-release firewalld jq -y
     systemctl stop firewalld
     echo ""
     echo "====>Firewalld installed"
