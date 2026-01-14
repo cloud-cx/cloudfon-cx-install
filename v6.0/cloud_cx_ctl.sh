@@ -864,10 +864,15 @@ http {
 		     index index.htm index.html;
 	      }
 
-             location / {
-                     root /opt/kong/webapp/static/files;
-                     index index.htm index.html;
-             }
+        location / {
+               root /opt/kong/webapp/static/files;
+               index index.htm index.html;
+       }
+
+        location = /index.html {
+               root /opt/kong/webapp/static/files;
+               add_header Cache-Control "no-cache, no-store, must-revalidate";
+        }
      }
 
 }
