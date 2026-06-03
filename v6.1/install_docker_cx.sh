@@ -3,10 +3,19 @@ set -e
 
 system_check(){
     timezone_check
+
+    # Check if Docker is already installed
+    if command -v docker >/dev/null 2>&1; then
+        echo ""
+        echo "====> Docker is already installed, skipping."
+        echo ""
+        return
+    fi
+
     if [ -f "/etc/redhat-release" ]; then
         install_docker_on_centos
     elif [ -f "/etc/lsb-release" ]; then
-        install_docker_on_ubuntu
+          install_docker_on_ubuntu
     elif [ -f "/etc/debian_version" ]; then
         install_docker_on_debian
     else
@@ -17,52 +26,175 @@ system_check(){
 
 set_firewall(){
     echo ""
+    echo "====> Firewall configuration"
+    echo ""
 
-    # ===== Debian: use UFW, NEVER firewalld =====
-    if [ -f /etc/debian_version ]; then
-        echo "====> Debian detected, use UFW (skip firewalld)"
+    # --------------------------------------------------
+    # 1. Detect firewall -- priority: (active) firewalld > ufw > (installed) firewalld > ufw
+    # --------------------------------------------------
+
+    # --- Case A: firewalld is ACTIVE (running) -> configure and reload ---
+    if command -v firewall-cmd >/dev/null 2>&1 && systemctl is-active --quiet firewalld 2>/dev/null; then
+        echo ""
+        echo "====> [WARNING] firewalld detected (active)"
+        echo "====> Adding required ports (9001, 9006, 443) and allowing SSH"
         echo ""
 
-        apt-get install -y ufw || true
+        firewall-cmd --zone=trusted --remove-interface=docker0 --permanent || true
+        firewall-cmd --permanent --add-service=ssh || true
+        firewall-cmd --zone=public --add-port=9001/tcp --permanent || true
+        firewall-cmd --zone=public --add-port=9006/tcp --permanent || true
+        firewall-cmd --zone=public --add-port=443/tcp --permanent || true
+        firewall-cmd --reload || true
+
+        echo ""
+        echo "====> firewalld rule configuration completed"
+        echo ""
+        return
+    fi
+
+    # --- Case B: UFW is ACTIVE -> configure ---
+    if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -qi "active"; then
+        echo ""
+        echo "====> [WARNING] UFW detected (active)"
+        echo "====> Adding required ports (9001, 9006, 443) and allowing SSH"
+        echo ""
 
         ufw allow ssh || true
         ufw allow 9001/tcp || true
         ufw allow 9006/tcp || true
         ufw allow 443/tcp || true
 
-        ufw --force enable || true
-
         echo ""
-        echo "====> UFW configure done"
+        echo "====> UFW rule configuration completed"
         echo ""
         return
     fi
 
+    # --- Case C: firewalld installed but INACTIVE -> add permanent rules only, don't start ---
+    if command -v firewall-cmd >/dev/null 2>&1 || systemctl list-unit-files firewalld.service >/dev/null 2>&1; then
+        echo ""
+        echo "====> [WARNING] firewalld detected (inactive) - adding permanent rules"
+        echo ""
 
-    # ===== Non-Debian: use firewalld =====
-    echo "====> Disable UFW (if exists)"
-    ufw --force disable || true
+        firewall-cmd --zone=trusted --remove-interface=docker0 --permanent || true
+        firewall-cmd --permanent --add-service=ssh || true
+        firewall-cmd --zone=public --add-port=9001/tcp --permanent || true
+        firewall-cmd --zone=public --add-port=9006/tcp --permanent || true
+        firewall-cmd --zone=public --add-port=443/tcp --permanent || true
+
+        echo ""
+        echo "====> firewalld permanent rules added (service remains inactive)"
+        echo ""
+        return
+    fi
+
+    # --- Case D: UFW installed but INACTIVE -> add rules only, don't enable ---
+    if command -v ufw >/dev/null 2>&1; then
+        echo ""
+        echo "====> [WARNING] UFW detected (inactive) - adding rules"
+        echo ""
+
+        ufw allow ssh || true
+        ufw allow 9001/tcp || true
+        ufw allow 9006/tcp || true
+        ufw allow 443/tcp || true
+
+        echo ""
+        echo "====> UFW rules added (service remains inactive)"
+        echo ""
+        return
+    fi
+
+    # --------------------------------------------------
+    # 2. No firewall at all -- install firewalld first
+    # --------------------------------------------------
 
     echo ""
-    echo "====> Enable firewalld"
-    systemctl enable firewalld
-    systemctl start firewalld
-
+    echo "====> No firewall found, installing firewalld..."
     echo ""
-    echo "====> Configure cloudfon-cc firewall rules"
-    firewall-cmd --zone=trusted --remove-interface=docker0 --permanent || true
-    firewall-cmd --reload
 
-    firewall-cmd --permanent --add-service=ssh
-    firewall-cmd --zone=public --add-port=9001/tcp --permanent
-    firewall-cmd --zone=public --add-port=9006/tcp --permanent
-    firewall-cmd --zone=public --add-port=443/tcp --permanent
+    # Determine package manager
+    if command -v yum >/dev/null 2>&1; then
+        PKG_MGR="yum"
+    elif command -v apt-get >/dev/null 2>&1; then
+        PKG_MGR="apt"
+    else
+        echo "====> WARNING: Unknown package manager, cannot install firewall. Skipping."
+        return
+    fi
 
-    firewall-cmd --reload
-    systemctl restart firewalld
+    # --- Try firewalld ---
+    FIREWALLD_OK=false
 
+    if [ "$PKG_MGR" = "yum" ]; then
+        yum install -y firewalld || true
+    elif [ "$PKG_MGR" = "apt" ]; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y firewalld || true
+    fi
+
+    if command -v firewall-cmd >/dev/null 2>&1 || systemctl list-unit-files firewalld.service >/dev/null 2>&1; then
+        systemctl enable firewalld 2>/dev/null || true
+        systemctl start firewalld 2>/dev/null || true
+        systemctl is-active --quiet firewalld 2>/dev/null && FIREWALLD_OK=true
+    fi
+
+    if [ "$FIREWALLD_OK" = true ]; then
+        echo ""
+        echo "====> firewalld installed and started successfully"
+        echo ""
+
+        firewall-cmd --zone=trusted --remove-interface=docker0 --permanent || true
+        firewall-cmd --permanent --add-service=ssh || true
+        firewall-cmd --zone=public --add-port=9001/tcp --permanent || true
+        firewall-cmd --zone=public --add-port=9006/tcp --permanent || true
+        firewall-cmd --zone=public --add-port=443/tcp --permanent || true
+        firewall-cmd --reload || true
+
+        echo ""
+        echo "====> firewalld rule configuration completed"
+        echo ""
+        return
+    fi
+
+    # --- firewalld failed → try UFW ---
     echo ""
-    echo "====> Firewalld configure done"
+    echo "====> firewalld installation failed, attempting UFW..."
+    echo ""
+
+    UFW_OK=false
+
+    if [ "$PKG_MGR" = "yum" ]; then
+        yum install -y ufw || true
+    elif [ "$PKG_MGR" = "apt" ]; then
+        DEBIAN_FRONTEND=noninteractive apt-get install -y ufw || true
+    fi
+
+    if command -v ufw >/dev/null 2>&1; then
+        ufw --force enable 2>/dev/null || true
+        ufw status 2>/dev/null | grep -qi "active" && UFW_OK=true
+    fi
+
+    if [ "$UFW_OK" = true ]; then
+        echo ""
+        echo "====> UFW installed and started successfully"
+        echo ""
+
+        ufw allow ssh || true
+        ufw allow 9001/tcp || true
+        ufw allow 9006/tcp || true
+        ufw allow 443/tcp || true
+
+        echo ""
+        echo "====> UFW rule configuration completed"
+        echo ""
+        return
+    fi
+
+    # --- Both failed ---
+    echo ""
+    echo -e "\e[1;31m====> [ERROR] Failed to install firewalld or UFW.\e[0m"
+    echo -e "\e[1;31m====> Please manually configure firewall rules: allow ports 9001, 9006, 443 (TCP) and SSH.\e[0m"
     echo ""
 }
 
@@ -74,7 +206,7 @@ install_docker_on_centos(){
     echo "====> Starting to install on centos"
     echo ""
     yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
-    yum install -y yum-utils device-mapper-persistent-data lvm2 firewalld
+    yum install -y yum-utils device-mapper-persistent-data lvm2
     yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
     yum makecache
     echo ""
@@ -107,11 +239,11 @@ install_docker_on_ubuntu(){
     echo ""
     echo "====>System updated"
     echo ""
-    echo "====>Try to install the firewalld"
+    echo "====>Install base dependencies"
     echo ""
-    DEBIAN_FRONTEND=noninteractive apt-get install -y apt-transport-https ca-certificates curl gnupg software-properties-common firewalld lsb-release
+    DEBIAN_FRONTEND=noninteractive apt-get install -y apt-transport-https ca-certificates curl gnupg software-properties-common lsb-release
     echo ""
-    echo "====>Firewalld installed"
+    echo "====>Base dependencies installed"
     echo ""
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
     add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
@@ -143,8 +275,8 @@ install_docker_on_debian(){
     apt update -y
     apt upgrade -y
     echo ""
-    echo "====> Install base packages (NO firewalld)"
-    apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release ufw || true
+    echo "====> Install base packages"
+    apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release || true
 
     echo ""
     echo "====> Try to install docker"
