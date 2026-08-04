@@ -74,7 +74,7 @@ services:
       /usr/local/sbin/upgrade
   # kong gateway
   cx-kong:
-    image: registry.cloudfon.net:5000/puteyun/cx-kong:1.0.0
+    image: puteyun/cx-kong:1.0.0
     privileged: true
     user: kong
     container_name: cx-kong
@@ -308,7 +308,7 @@ services:
       /usr/local/sbin/upgrade
   # kong gateway
   cx-kong:
-    image: registry.cloudfon.net:5000/puteyun/cx-kong:1.0.0
+    image: puteyun/cx-kong:1.0.0
     privileged: true
     logging: *default-logging
     user: kong
@@ -547,7 +547,7 @@ services:
       /usr/local/sbin/upgrade
   # kong gateway
   cx-kong:
-    image: registry.cloudfon.net:5000/puteyun/cx-kong:1.0.0
+    image: puteyun/cx-kong:1.0.0
     privileged: true
     user: kong
     container_name: cx-kong
